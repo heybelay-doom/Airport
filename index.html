@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Line | TSA Queue Simulator | Estimated Wait: ∞</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- NEWS TICKER -->
+  <header id="ticker-bar" aria-label="Breaking news ticker">
+    <span class="ticker-label">⚠ BREAKING</span>
+    <div class="ticker-track-wrapper">
+      <div id="ticker-track" class="ticker-track">
+        <span id="ticker-content">GOVERNMENT SHUTDOWN DAY ???: OFFICIALS DESCRIBE SITUATION AS "FLUID" &nbsp;&nbsp;&nbsp;◆&nbsp;&nbsp;&nbsp; TSA STAFFING AT 23% CAPACITY — WAIT TIMES "WITHIN NORMAL RANGE" &nbsp;&nbsp;&nbsp;◆&nbsp;&nbsp;&nbsp; SENATOR URGES SWIFT RESOLUTION — RECESS STARTS MONDAY &nbsp;&nbsp;&nbsp;◆&nbsp;&nbsp;&nbsp; BIPARTISAN AGREEMENT REACHED ON FONT SIZE OF BUDGET DOCUMENT &nbsp;&nbsp;&nbsp;◆&nbsp;&nbsp;&nbsp; TSA ANNOUNCES FEEDBACK FORM FOR THE FORM YOU JUST FILLED OUT &nbsp;&nbsp;&nbsp;◆&nbsp;&nbsp;&nbsp; AIRPORT CINNABON REPORTS RECORD SALES FROM FURLOUGHED AGENTS &nbsp;&nbsp;&nbsp;◆&nbsp;&nbsp;&nbsp; GOVERNMENT: "WE WILL REOPEN SOON" (YEAR 3) &nbsp;&nbsp;&nbsp;◆&nbsp;&nbsp;&nbsp;</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN GAME AREA -->
+  <main id="game-area">
+
+    <!-- QUEUE VIEWPORT (center column) -->
+    <section id="queue-viewport" aria-label="Security queue">
+
+      <!-- Scanner — always visible at top -->
+      <div id="scanner-zone" aria-label="Security scanner (far away)">
+        <div class="scanner-label">🛡 SECURITY CHECKPOINT</div>
+        <div id="scanner-arch">
+          <div class="scanner-pole left"></div>
+          <div class="scanner-beam"></div>
+          <div class="scanner-pole right"></div>
+        </div>
+        <div id="scanner-eta" class="scanner-eta">ETA: After next election</div>
+      </div>
+
+      <!-- Scrolling queue track -->
+      <div id="queue-track-wrapper">
+        <div id="queue-track">
+          <!-- NPC rows injected by JS -->
+        </div>
+      </div>
+
+      <!-- Player — always at bottom -->
+      <div id="player-zone">
+        <div class="player-divider"><span>— YOU ARE HERE —</span></div>
+        <div id="player-char" class="player-char" aria-label="You">🧍</div>
+      </div>
+
+    </section>
+
+    <!-- STATS PANEL (left column) -->
+    <aside id="stats-panel" aria-label="Queue statistics">
+      <h2 class="panel-title">QUEUE STATUS<br><span class="panel-subtitle">(UNOFFICIAL)</span></h2>
+
+      <div class="stat-row">
+        <span class="stat-label">Position</span>
+        <span id="stat-position" class="stat-value">847</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Steps Taken</span>
+        <span id="stat-steps" class="stat-value">0</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Time Wasted</span>
+        <span id="stat-time" class="stat-value">00:00</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Tax $ Lost</span>
+        <span id="stat-dollars" class="stat-value">$0</span>
+      </div>
+
+      <div class="progress-section">
+        <div class="progress-label">PROXIMITY TO FREEDOM<br><span class="progress-sublabel">(Theoretical)</span></div>
+        <div id="progress-bar-outer">
+          <div id="progress-bar-fill"></div>
+          <div class="progress-scanline"></div>
+          <span id="progress-pct" class="progress-pct">0%</span>
+        </div>
+        <div id="progress-footnote" class="progress-footnote">Approximate. Subject to revision.</div>
+      </div>
+
+      <!-- Achievements -->
+      <div id="achievements-panel">
+        <h3 class="achievements-title">ACHIEVEMENTS</h3>
+        <div id="achievements-list">
+          <!-- Injected by JS -->
+        </div>
+      </div>
+    </aside>
+
+    <!-- EVENT LOG (right column) -->
+    <aside id="event-log-panel" aria-label="Event log">
+      <h2 class="panel-title">INCIDENT LOG<br><span class="panel-subtitle">(UNCLASSIFIED)</span></h2>
+      <ul id="event-log-list">
+        <li class="log-entry log-info">Queue simulation initialized. Good luck.</li>
+      </ul>
+    </aside>
+
+  </main>
+
+  <!-- ACTION BAR -->
+  <footer id="action-bar">
+    <button id="step-btn" class="step-btn" aria-label="Shuffle forward one step">
+      <span id="step-btn-text">SHUFFLE FORWARD</span>
+      <span class="step-btn-hint">(Results not guaranteed)</span>
+    </button>
+    <div id="extra-clicks-indicator" class="extra-clicks-indicator" aria-live="polite"></div>
+  </footer>
+
+  <!-- FREEZE OVERLAY -->
+  <div id="freeze-overlay" class="freeze-overlay hidden" role="dialog" aria-modal="true" aria-label="Operations frozen">
+    <div class="freeze-box">
+      <div id="freeze-title" class="freeze-title"></div>
+      <div id="freeze-body" class="freeze-body"></div>
+      <div id="freeze-countdown" class="freeze-countdown"></div>
+      <div id="freeze-breath" class="freeze-breath hidden">
+        <div class="breath-circle"></div>
+        <div id="breath-text" class="breath-text">Breathe in...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST CONTAINER -->
+  <div id="toast-container" aria-live="assertive"></div>
+
+  <script src="game.js"></script>
+</body>
+</html>
