@@ -68,6 +68,87 @@ const ACHIEVEMENTS = [
   { id: 'budget_passed',  label: 'Budget Passed',            desc: '???',                            check: () => false, impossible: true },
 ];
 
+/* ── NPC Types ─────────────────────────────── */
+const NPC_TYPES = [
+  {
+    id: 'anxious_traveler',
+    sprite: '😰',
+    name: 'Anxious Traveler',
+    lines: ['I\'ve been here since Tuesday.', 'My flight was yesterday.', 'Do you think they\'ll gate-check my emotional support binder?'],
+    choices: [
+      { text: '"Totally normal wait time."',      outcome: 'success', result: '"Thank you. That helps."',                     effect: { advance: 2 } },
+      { text: '"Mine was last week."',            outcome: 'success', result: '"Oh. We\'re in this together."',               effect: { advance: 1 } },
+      { text: '"The airport Cinnabon is great."', outcome: 'fail',    result: 'They start hyperventilating about carbs.',     effect: { pushback: 3 } },
+    ],
+  },
+  {
+    id: 'business_man',
+    sprite: '💼',
+    name: 'Business Traveler',
+    lines: ['I have Global Entry. This is beneath me.', 'I\'m being detained by incompetence.', 'My assistant is handling this. Somehow.'],
+    choices: [
+      { text: '"The PreCheck lane is also closed."',     outcome: 'success', result: '"I feel seen. Betrayed, but seen."',   effect: { advance: 1 } },
+      { text: '"You could just relax."',                outcome: 'fail',    result: 'They call their lawyer.',              effect: { freeze: 4 } },
+      { text: '"Same boat."',                           outcome: 'success', result: '"Solidarity. Briefly."',               effect: { advance: 2 } },
+    ],
+  },
+  {
+    id: 'retiree',
+    sprite: '👴',
+    name: 'Retired Federal Employee',
+    lines: ['I used to work here, you know.', 'In my day, lines moved.', 'The form used to be one page.'],
+    choices: [
+      { text: '"Tell me about the old days."',          outcome: 'success', result: 'They smile. Queue inches forward.',     effect: { advance: 3 } },
+      { text: '"Forms are longer now for safety."',     outcome: 'fail',    result: 'Hour-long lecture ensues.',             effect: { freeze: 6 } },
+      { text: '"Progress, I guess."',                   outcome: 'success', result: '"If you call this progress."',          effect: { advance: 1 } },
+    ],
+  },
+  {
+    id: 'phone_parent',
+    sprite: '📱',
+    name: 'Distracted Parent',
+    lines: ['Hold on—JAYDEN, STOP—sorry, what?', 'We have 6 carry-ons. It\'s fine.', 'The iPad died. We are not fine.'],
+    choices: [
+      { text: '"Solidarity."',                          outcome: 'success', result: 'They nod grimly. You advance.',         effect: { advance: 2 } },
+      { text: '"Maybe pack lighter next time."',        outcome: 'fail',    result: 'Jayden escapes. Chaos ensues.',         effect: { pushback: 5 } },
+      { text: '"We\'ll all get through this."',         outcome: 'success', result: '"Jayden, did you hear that? No? Okay."', effect: { advance: 1 } },
+    ],
+  },
+  {
+    id: 'conspiracy_guy',
+    sprite: '🕵️',
+    name: 'Suspicious Gentleman',
+    lines: ['This line is longer than it appears. Think about it.', 'The scanner reads thoughts. I\'ve done the research.', 'They count steps. That\'s how they know.'],
+    choices: [
+      { text: '"Interesting theory."',                  outcome: 'success', result: 'He feels heard. Queue moves.',          effect: { advance: 2 } },
+      { text: '"The scanner is just metal detection."', outcome: 'fail',    result: '"That\'s what they want you to think."', effect: { pushback: 4 } },
+      { text: '"I also don\'t trust the Cinnabon."',    outcome: 'success', result: '"Finally. Someone gets it."',           effect: { advance: 3 } },
+    ],
+  },
+  {
+    id: 'tsa_off_duty',
+    sprite: '🦺',
+    name: 'Off-Duty TSA Agent',
+    lines: ['I\'m not working right now. Officially.', 'I know the scanner guy. It doesn\'t help.', 'The form changed again. Last week.'],
+    choices: [
+      { text: '"Must be weird being on this side."',    outcome: 'success', result: '"You have no idea."',                  effect: { advance: 3 } },
+      { text: '"Can you get me through faster?"',       outcome: 'fail',    result: '"I\'m off the clock."',                effect: { extraClicks: 6 } },
+      { text: '"Which form changed?"',                  outcome: 'fail',    result: 'Twenty-minute form explanation begins.', effect: { freeze: 5 } },
+    ],
+  },
+  {
+    id: 'zen_traveler',
+    sprite: '🧘',
+    name: 'Eerily Calm Person',
+    lines: ['The line is a journey.', 'I arrived four hours early. As one does.', 'I have nowhere else to be.'],
+    choices: [
+      { text: '"Teach me your ways."',                  outcome: 'success', result: 'Brief calm descends. You advance.',     effect: { advance: 4 } },
+      { text: '"Must be nice."',                        outcome: 'success', result: '"It is."',                              effect: { advance: 2 } },
+      { text: '"Don\'t you have a flight to catch?"',   outcome: 'fail',    result: 'Their calm shatters. Queue freezes.',   effect: { freeze: 5 } },
+    ],
+  },
+];
+
 /* ── DOM Refs ──────────────────────────────── */
 const DOM = {};
 
@@ -104,12 +185,20 @@ const Game = {
     DOM.extraClicks     = document.getElementById('extra-clicks-indicator');
     DOM.tickerContent   = document.getElementById('ticker-content');
 
+    DOM.dialogueOverlay = document.getElementById('dialogue-overlay');
+    DOM.dialogueSprite  = document.getElementById('dialogue-sprite');
+    DOM.dialogueName    = document.getElementById('dialogue-name');
+    DOM.dialogueText    = document.getElementById('dialogue-text');
+    DOM.dialogueChoices = document.getElementById('dialogue-choices');
+    DOM.dialogueResult  = document.getElementById('dialogue-result');
+
     DOM.stepBtn.addEventListener('click', () => Game.step());
     document.addEventListener('keydown', (e) => {
       if (e.code === 'Space' || e.key === ' ') {
         e.preventDefault();
         Game.step();
       }
+      if (e.code === 'Escape') Game.closeDialogue();
     });
 
     this.renderQueue();
@@ -199,13 +288,19 @@ const Game = {
   renderQueue() {
     DOM.queueTrack.innerHTML = '';
     for (let i = 0; i < this.queueNPCs; i++) {
+      const npcType = NPC_TYPES[i % NPC_TYPES.length];
       const person = document.createElement('div');
       person.className = 'queue-person';
-      const dot = document.createElement('div');
-      dot.className = 'dot';
-      // Slightly randomize dot position
-      dot.style.marginLeft = `${(Math.random() - 0.5) * 20}px`;
-      person.appendChild(dot);
+      person.title = `[Click to interact]`;
+      person.dataset.npcId = npcType.id;
+
+      const sprite = document.createElement('span');
+      sprite.className = 'npc-sprite';
+      sprite.textContent = npcType.sprite;
+      sprite.style.marginLeft = `${(Math.random() - 0.5) * 20}px`;
+
+      person.appendChild(sprite);
+      person.addEventListener('click', () => Game.openDialogue(npcType));
       DOM.queueTrack.appendChild(person);
 
       if ((i + 1) % 5 === 0 && i < this.queueNPCs - 1) {
@@ -469,6 +564,57 @@ const Game = {
         this.addLog(`Achievement: ${ach.label}`, 'good');
       }
     }
+  },
+
+  /* ── Dialogue ────────────────────────────── */
+
+  openDialogue(npcType) {
+    if (STATE.isFrozen || STATE.extraClicksRequired > 0) return;
+
+    const line = npcType.lines[Math.floor(Math.random() * npcType.lines.length)];
+    DOM.dialogueSprite.textContent = npcType.sprite;
+    DOM.dialogueName.textContent   = npcType.name;
+    DOM.dialogueText.textContent   = line;
+    DOM.dialogueResult.className   = 'dialogue-result';
+    DOM.dialogueResult.textContent = '';
+    DOM.dialogueChoices.innerHTML  = '';
+
+    for (const choice of npcType.choices) {
+      const btn = document.createElement('button');
+      btn.className   = 'dialogue-choice';
+      btn.textContent = choice.text;
+      btn.addEventListener('click', () => this.resolveChoice(choice, btn, npcType.choices));
+      DOM.dialogueChoices.appendChild(btn);
+    }
+
+    DOM.dialogueOverlay.classList.remove('hidden');
+  },
+
+  resolveChoice(choice, btn, allChoices) {
+    // Disable all choices
+    DOM.dialogueChoices.querySelectorAll('.dialogue-choice').forEach(b => b.disabled = true);
+
+    btn.classList.add(choice.outcome === 'success' ? 'correct' : 'wrong');
+
+    DOM.dialogueResult.textContent = choice.result;
+    DOM.dialogueResult.className   = `dialogue-result show ${choice.outcome === 'success' ? 'success' : 'fail'}`;
+
+    const eff = choice.effect;
+    if (eff.advance)     { STATE.queuePosition = Math.max(1, STATE.queuePosition - eff.advance); this.showFloatText(`-${eff.advance}`, 'positive'); this.scrollQueue(); }
+    if (eff.pushback)    { this.pushback(eff.pushback); }
+    if (eff.freeze)      { this.showFreeze({ title: 'Conversation Freeze', body: 'Awaiting social resolution.' }, eff.freeze, false); }
+    if (eff.extraClicks) { STATE.extraClicksRequired = eff.extraClicks; STATE.extraClicksDone = 0; DOM.extraClicks.textContent = `${eff.extraClicks} clicks remaining`; }
+
+    const logText = choice.outcome === 'success'
+      ? `Placated ${DOM.dialogueName.textContent}. Queue shifted.`
+      : `Failed to placate ${DOM.dialogueName.textContent}.`;
+    this.addLog(logText, choice.outcome === 'success' ? 'good' : 'major');
+
+    setTimeout(() => this.closeDialogue(), 1800);
+  },
+
+  closeDialogue() {
+    DOM.dialogueOverlay.classList.add('hidden');
   },
 };
 
